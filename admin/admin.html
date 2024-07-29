@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <h1>Admin Panel Quiz App</h1>
+        <form id="questionForm">
+            <input type="hidden" id="editIndex" value="">
+            <input type="text" id="questionText" placeholder="Enter question" required>
+            <input type="text" id="option1" placeholder="Option 1" required>
+            <input type="text" id="option2" placeholder="Option 2" required>
+            <input type="text" id="option3" placeholder="Option 3" required>
+            <input type="text" id="option4" placeholder="Option 4" required>
+            <input type="text" id="correctAnswer" placeholder="Correct Answer" required>
+            <button type="submit">Save Question</button>
+        </form>
+        <h2>Questions</h2>
+        <ul id="questionList"></ul>
+        <button id="clearStorage">Clear All Questions</button>
+        <button id="homeBtn">Back to Home</button>
+    </div>
+    <script>
+        const questionForm = document.getElementById('questionForm');
+        const questionList = document.getElementById('questionList');
+        const editIndexInput = document.getElementById('editIndex');
+        let questions = JSON.parse(localStorage.getItem('questions')) || [];
+
+        function renderQuestions() {
+            questionList.innerHTML = '';
+            questions.forEach((question, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <strong>${question.question}</strong>
+                    <ul>
+                        <li>1. ${question.options[0]}</li>
+                        <li>2. ${question.options[1]}</li>
+                        <li>3. ${question.options[2]}</li>
+                        <li>4. ${question.options[3]}</li>
+                    </ul>
+                    <button onclick="editQuestion(${index})">Edit</button>
+                    <button onclick="deleteQuestion(${index})">Delete</button>
+                `;
+                questionList.appendChild(li);
+            });
+        }
+
+        function saveQuestion(e) {
+            e.preventDefault();
+            const questionText = document.getElementById('questionText').value;
+            const options = [
+                document.getElementById('option1').value,
+                document.getElementById('option2').value,
+                document.getElementById('option3').value,
+                document.getElementById('option4').value
+            ];
+            const correctAnswer = document.getElementById('correctAnswer').value;
+            const editIndex = parseInt(editIndexInput.value);
+
+            if (isNaN(editIndex)) {
+                questions.push({ question: questionText, options, answer: correctAnswer });
+            } else {
+                questions[editIndex] = { question: questionText, options, answer: correctAnswer };
+                editIndexInput.value = '';
+            }
+
+            localStorage.setItem('questions', JSON.stringify(questions));
+            questionForm.reset();
+            renderQuestions();
+        }
+
+        function editQuestion(index) {
+            const question = questions[index];
+            document.getElementById('questionText').value = question.question;
+            document.getElementById('option1').value = question.options[0];
+            document.getElementById('option2').value = question.options[1];
+            document.getElementById('option3').value = question.options[2];
+            document.getElementById('option4').value = question.options[3];
+            document.getElementById('correctAnswer').value = question.answer;
+            editIndexInput.value = index;
+        }
+
+        function deleteQuestion(index) {
+            questions.splice(index, 1);
+            localStorage.setItem('questions', JSON.stringify(questions));
+            renderQuestions();
+        }
+
+        function clearStorage() {
+            localStorage.removeItem('questions');
+            questions = [];
+            renderQuestions();
+        }
+
+        document.getElementById('clearStorage').addEventListener('click', clearStorage);
+        document.getElementById('homeBtn').addEventListener('click', function() {
+            window.location.href = 'index.html';
+        });
+
+        questionForm.addEventListener('submit', saveQuestion);
+
+        renderQuestions();
+    </script>
+</body>
+</html>
